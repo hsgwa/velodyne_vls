@@ -620,6 +620,7 @@ void RawData::unpack_vlp16(const velodyne_msgs::msg::VelodynePacket & pkt, DataC
         azimuth_diff = (block == BLOCKS_PER_PACKET - (4*dual_return)-1) ? 0 : last_azimuth_diff;
       }
 
+      auto pkt_stamp_sec = rclcpp::Time(pkt.stamp).seconds();
       // condition added to avoid calculating points which are not in the interesting defined area (min_angle < area < max_angle)
       if ((config_.min_angle < config_.max_angle && azimuth >= config_.min_angle && azimuth <= config_.max_angle) || (config_.min_angle > config_.max_angle)) {
         for (int j = 0, k = 0; j < SCANS_PER_BLOCK; j++, k += RAW_SCAN_SIZE) {
@@ -699,7 +700,7 @@ void RawData::unpack_vlp16(const velodyne_msgs::msg::VelodynePacket & pkt, DataC
               // if (timing_offsets.size())
               //   time = timing_offsets[block][j] + time_diff_start_to_this_packet;
 
-              double time_stamp = block * 55.3 / 1000.0 / 1000.0 + j * 2.665 / 1000.0 / 1000.0 + rclcpp::Time(pkt.stamp).seconds();
+              double time_stamp = block * 55.3 / 1000.0 / 1000.0 + j * 2.665 / 1000.0 / 1000.0 + pkt_stamp_sec;
 
               if (is_invalid_distance) {
                 data.addPoint(x_coord, y_coord, z_coord, corrections.laser_ring, azimuth_corrected, 0, intensity, time_stamp);
